@@ -1,57 +1,68 @@
-import { Linking } from 'react-native'
+import { Linking } from "react-native";
 
-const isValidLatLng = (num, range) => typeof num === 'number' && num <= range && num >= -1 * range
+const isValidLatLng = (num, range) =>
+  typeof num === "number" && num <= range && num >= -1 * range;
 
 const isValidCoordinates = coords =>
-  isValidLatLng(coords.latitude, 90) && isValidLatLng(coords.longitude, 180)
+  isValidLatLng(coords.latitude, 90) && isValidLatLng(coords.longitude, 180);
 
 const getParams = (params = []) => {
   return params
     .map(({ key, value }) => {
-      const encodedKey = encodeURIComponent(key)
-      const encodedValue = encodeURIComponent(value)
-      return `${encodedKey}=${encodedValue}`
+      const encodedKey = encodeURIComponent(key);
+      const encodedValue = encodeURIComponent(value);
+      return `${encodedKey}=${encodedValue}`;
     })
-    .join('&')
-}
+    .join("&");
+};
 
 const getWaypoints = (waypoints = []) => {
   if (waypoints.length === 0) {
-    return ''
+    return "";
   }
 
   const params = waypoints
-    .map(value => `${value.latitude},${value.longitude}`)
-    .join('|')
+    .map(value => `${value.latitude}%2C${value.longitude}`)
+    .join("%7C");
 
-  return `&waypoints=${params}`
-}
+  return `&waypoints=${params}`;
+};
 
-function getDirections ({ destination, source, params = [], waypoints = [] } = {}) {
+function getDirections({
+  destination,
+  source,
+  params = [],
+  waypoints = []
+} = {}) {
   if (destination && isValidCoordinates(destination)) {
     params.push({
-      key: 'destination',
+      key: "destination",
       value: `${destination.latitude},${destination.longitude}`
-    })
+    });
   }
 
   if (source && isValidCoordinates(source)) {
     params.push({
-      key: 'origin',
+      key: "origin",
       value: `${source.latitude},${source.longitude}`
-    })
+    });
   }
 
   const url = `https://www.google.com/maps/dir/?api=1&${getParams(
     params
-  )}${getWaypoints(waypoints)}`
+  )}${getWaypoints(waypoints)}`;
+
+  console.log("google maps url", url);
+
   return Linking.canOpenURL(url).then(supported => {
+    console.log("supported", supported);
     if (!supported) {
-      return Promise.reject(new Error(`Could not open the url: ${url}`))
+      console.log("not supported");
+      return Promise.reject(new Error(`Could not open the url: ${url}`));
     } else {
-      return Linking.openURL(url)
+      return Linking.openURL(url);
     }
-  })
+  });
 }
 
-export default getDirections
+export default getDirections;
